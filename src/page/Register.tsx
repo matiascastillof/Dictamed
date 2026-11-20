@@ -4,12 +4,16 @@ import '../css/Register.css'
 import { REGIONES } from '../data/regiones'
 import { ESPECIALIDADES, OTRA, PROFESIONES, type Profesion } from '../data/especialidades'
 import { formatearRut, limpiarRut, validarRut } from '../utils/rut'
+import { ErrorRegistro, registrarProfesional } from '../services/profesionales'
+import { useSesion } from '../hooks/useSesion'
 
 export type DatosRegistro = {
   nombre: string
   apellidos: string
   rut: string
   correo: string
+  contrasena: string
+  confirmacion: string
   profesion: Profesion | ''
   especialidad: string
   especialidadOtra: string
@@ -22,6 +26,8 @@ const VACIO: DatosRegistro = {
   apellidos: '',
   rut: '',
   correo: '',
+  contrasena: '',
+  confirmacion: '',
   profesion: '',
   especialidad: '',
   especialidadOtra: '',
@@ -32,7 +38,7 @@ const VACIO: DatosRegistro = {
 type Errores = Partial<Record<keyof DatosRegistro, string>>
 
 const SOLO_NOMBRE = /^[\p{L}' -]+$/u
-// Acepta cualquier dominio: la propiedad del correo se confirma con un código.
+// Acepta cualquier dominio.
 const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 const ordenar = (lista: string[]) => [...lista].sort((a, b) => a.localeCompare(b, 'es'))
@@ -72,12 +78,31 @@ const PASOS: Paso[] = [
   {
     id: 'correo',
     titulo: '¿Cuál es tu correo electrónico?',
-    bajada: 'Te enviaremos un código a este correo para confirmarlo.',
+    bajada: 'Lo usaremos para comunicarnos contigo y para que accedas a tu cuenta.',
     validar: (d) => ({
       correo: !d.correo.trim()
         ? 'Ingresa tu correo electrónico.'
         : !CORREO.test(d.correo.trim())
           ? 'Revisa el formato del correo (ej: nombre@dominio.cl).'
+          : undefined,
+    }),
+  },
+  {
+    id: 'contrasena',
+    titulo: 'Crea una contraseña',
+    bajada: 'La usarás junto a tu correo para iniciar sesión en Dictamed.',
+    validar: (d) => ({
+      contrasena: !d.contrasena
+        ? 'Crea una contraseña.'
+        : d.contrasena.length < 8
+          ? 'Debe tener al menos 8 caracteres.'
+          : !/\d/.test(d.contrasena) || !/\p{L}/u.test(d.contrasena)
+            ? 'Debe incluir al menos una letra y un número.'
+            : undefined,
+      confirmacion: !d.confirmacion
+        ? 'Repite tu contraseña.'
+        : d.confirmacion !== d.contrasena
+          ? 'Las contraseñas no coinciden.'
           : undefined,
     }),
   },
@@ -157,16 +182,39 @@ export default function Register({
 }: {
   alEnviar?: (datos: DatosRegistro) => void | Promise<void>
 }) {
+  const { usuario } = useSesion()
   const [datos, setDatos] = useState<DatosRegistro>(VACIO)
-  const [paso, setPaso] = useState(0)
+  const [pasoId, setPasoId] = useState(PASOS[0].id)
   const [errores, setErrores] = useState<Errores>({})
   const [busqueda, setBusqueda] = useState('')
+  const [verContrasena, setVerContrasena] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [listo, setListo] = useState(false)
+  const [errorEnvio, setErrorEnvio] = useState<{ mensaje: string; paso?: string } | null>(null)
   const slidesRef = useRef<(HTMLDivElement | null)[]>([])
 
-  const actual = PASOS[paso]
-  const esUltimo = paso === PASOS.length - 1
+  // Si ya inició sesión (por ejemplo con Google), no se piden correo ni contraseña.
+  const pasos = useMemo(
+    () => (usuario ? PASOS.filter((p) => p.id !== 'correo' && p.id !== 'contrasena') : PASOS),
+    [usuario],
+  )
+  const paso = Math.max(0, pasos.findIndex((p) => p.id === pasoId))
+  const actual = pasos[paso]
+  const esUltimo = paso === pasos.length - 1
+
+  // Con sesión de Google, completa correo y nombre con los datos de la cuenta (una vez por usuario).
+  const [prellenadoPara, setPrellenadoPara] = useState<string | null>(null)
+  if (usuario && prellenadoPara !== usuario.id) {
+    setPrellenadoPara(usuario.id)
+    const meta = usuario.user_metadata ?? {}
+    const [nombre = '', ...resto] = String(meta.full_name ?? meta.name ?? '').trim().split(/\s+/)
+    setDatos((d) => ({
+      ...d,
+      correo: usuario.email ?? d.correo,
+      nombre: d.nombre || String(meta.given_name ?? nombre),
+      apellidos: d.apellidos || String(meta.family_name ?? resto.join(' ')),
+    }))
+  }
 
   const especialidades = useMemo(() => {
     if (!datos.profesion) return []
@@ -217,11 +265,12 @@ export default function Register({
     if (Object.keys(e).length) return
 
     if (!esUltimo) {
-      setPaso((p) => p + 1)
+      setPasoId(pasos[paso + 1].id)
       return
     }
 
     setEnviando(true)
+    setErrorEnvio(null)
     try {
       const final = {
         ...datos,
@@ -230,16 +279,24 @@ export default function Register({
         correo: datos.correo.trim().toLowerCase(),
         rut: limpiarRut(datos.rut),
       }
-      await (alEnviar ? alEnviar(final) : console.log('Registro', final))
+      await (alEnviar ?? registrarProfesional)(final)
       setListo(true)
+    } catch (err) {
+      if (err instanceof ErrorRegistro) {
+        setErrorEnvio({ mensaje: err.message, paso: err.campo })
+      } else {
+        console.error(err)
+        setErrorEnvio({ mensaje: 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.' })
+      }
     } finally {
       setEnviando(false)
     }
   }
 
-  function irA(i: number) {
+  function irA(id: string) {
     setErrores({})
-    setPaso(i)
+    setErrorEnvio(null)
+    setPasoId(id)
   }
 
   const nombreProfesion = PROFESIONES.find((p) => p.id === datos.profesion)?.nombre
@@ -256,13 +313,13 @@ export default function Register({
                 <path d="M4 12.5 9 17.5 20 6.5" />
               </svg>
             </div>
-            <h1>¡Ya casi está, {datos.nombre.trim()}!</h1>
+            <h1>¡Bienvenido/a, {datos.nombre.trim()}!</h1>
             <p>
-              Te enviaremos un código de verificación a <strong>{datos.correo.trim().toLowerCase()}</strong>{' '}
-              para confirmar tu cuenta.
+              Tu cuenta quedó creada con el correo{' '}
+              <strong>{datos.correo.trim().toLowerCase()}</strong> y ya iniciaste sesión.
             </p>
             <Link className="boton-registro" to="/">
-              Volver al inicio
+              Ir al inicio
             </Link>
           </div>
         </main>
@@ -270,13 +327,14 @@ export default function Register({
     )
   }
 
-  const resumen: { etiqueta: string; valor: string; paso: number }[] = [
-    { etiqueta: 'Nombre', valor: `${datos.nombre.trim()} ${datos.apellidos.trim()}`, paso: 0 },
-    { etiqueta: 'RUT', valor: datos.rut, paso: 1 },
-    { etiqueta: 'Correo', valor: datos.correo.trim().toLowerCase(), paso: 2 },
-    { etiqueta: 'Profesión', valor: nombreProfesion ?? '', paso: 3 },
-    { etiqueta: 'Especialidad', valor: especialidadFinal, paso: 4 },
-    { etiqueta: 'Ubicación', valor: `${datos.comuna}, ${datos.region}`, paso: 5 },
+  const resumen: { etiqueta: string; valor: string; paso?: string }[] = [
+    { etiqueta: 'Nombre', valor: `${datos.nombre.trim()} ${datos.apellidos.trim()}`, paso: 'nombre' },
+    { etiqueta: 'RUT', valor: datos.rut, paso: 'rut' },
+    // Con sesión de Google el correo viene de la cuenta y no se puede editar aquí.
+    { etiqueta: 'Correo', valor: datos.correo.trim().toLowerCase(), paso: usuario ? undefined : 'correo' },
+    { etiqueta: 'Profesión', valor: nombreProfesion ?? '', paso: 'profesion' },
+    { etiqueta: 'Especialidad', valor: especialidadFinal, paso: 'especialidad' },
+    { etiqueta: 'Ubicación', valor: `${datos.comuna}, ${datos.region}`, paso: 'ubicacion' },
   ]
 
   return (
@@ -286,19 +344,19 @@ export default function Register({
           <div className="progreso">
             <div className="progreso-texto">
               <span>
-                Paso {paso + 1} de {PASOS.length}
+                Paso {paso + 1} de {pasos.length}
               </span>
-              <span>{Math.round(((paso + 1) / PASOS.length) * 100)}%</span>
+              <span>{Math.round(((paso + 1) / pasos.length) * 100)}%</span>
             </div>
             <div
               className="progreso-barra"
               role="progressbar"
               aria-valuemin={1}
-              aria-valuemax={PASOS.length}
+              aria-valuemax={pasos.length}
               aria-valuenow={paso + 1}
               aria-label="Progreso del registro"
             >
-              <span style={{ width: `${((paso + 1) / PASOS.length) * 100}%` }} />
+              <span style={{ width: `${((paso + 1) / pasos.length) * 100}%` }} />
             </div>
           </div>
 
@@ -311,7 +369,7 @@ export default function Register({
           >
             <div className="slides">
               <div className="slides-pista" style={{ transform: `translateX(-${paso * 100}%)` }}>
-                {PASOS.map((p, i) => (
+                {pasos.map((p, i) => (
                   <div
                     key={p.id}
                     className="slide"
@@ -389,6 +447,40 @@ export default function Register({
                           onChange={(e) => cambiar('correo', e.target.value)}
                         />
                       </Campo>
+                    )}
+
+                    {p.id === 'contrasena' && (
+                      <div className="campos">
+                        <Campo
+                          etiqueta="Contraseña"
+                          error={errores.contrasena}
+                          ayuda="Mínimo 8 caracteres, con al menos una letra y un número."
+                        >
+                          <div className="campo-contrasena">
+                            <input
+                              type={verContrasena ? 'text' : 'password'}
+                              autoComplete="new-password"
+                              value={datos.contrasena}
+                              onChange={(e) => cambiar('contrasena', e.target.value)}
+                            />
+                            <button
+                              type="button"
+                              className="ver-contrasena"
+                              onClick={() => setVerContrasena((v) => !v)}
+                            >
+                              {verContrasena ? 'Ocultar' : 'Mostrar'}
+                            </button>
+                          </div>
+                        </Campo>
+                        <Campo etiqueta="Repite la contraseña" error={errores.confirmacion}>
+                          <input
+                            type={verContrasena ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            value={datos.confirmacion}
+                            onChange={(e) => cambiar('confirmacion', e.target.value)}
+                          />
+                        </Campo>
+                      </div>
                     )}
 
                     {p.id === 'profesion' && (
@@ -512,12 +604,27 @@ export default function Register({
                           <div key={r.etiqueta}>
                             <dt>{r.etiqueta}</dt>
                             <dd>{r.valor}</dd>
-                            <button type="button" className="editar" onClick={() => irA(r.paso)}>
-                              Editar
-                            </button>
+                            {r.paso ? (
+                              <button type="button" className="editar" onClick={() => irA(r.paso!)}>
+                                Editar
+                              </button>
+                            ) : (
+                              <span />
+                            )}
                           </div>
                         ))}
                       </dl>
+                    )}
+
+                    {p.id === 'resumen' && errorEnvio && (
+                      <div className="registro-alerta" role="alert">
+                        <p>{errorEnvio.mensaje}</p>
+                        {errorEnvio.paso !== undefined && (
+                          <button type="button" className="editar" onClick={() => irA(errorEnvio.paso!)}>
+                            Corregir
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -526,7 +633,7 @@ export default function Register({
 
             <div className="registro-botones">
               {paso > 0 && (
-                <button type="button" className="boton-volver" onClick={() => irA(paso - 1)}>
+                <button type="button" className="boton-volver" onClick={() => irA(pasos[paso - 1].id)}>
                   Atrás
                 </button>
               )}

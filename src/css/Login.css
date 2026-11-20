@@ -1,0 +1,78 @@
+/* Usa las variables y estilos base de Register.css (.registro, .campo, .boton-registro…) */
+
+.login-contenedor {
+  max-width: 460px;
+  padding-top: 48px;
+}
+
+.login-titulo {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--titulo);
+}
+
+.login-alerta {
+  margin: 0 0 20px;
+}
+
+.login-boton {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.login-separador {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0;
+  font-size: 13px;
+  color: var(--suave);
+}
+
+.login-separador::before,
+.login-separador::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+
+.boton-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: 999px;
+  border: 1.5px solid var(--borde-fuerte);
+  background: var(--superficie);
+  color: var(--titulo);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.boton-google svg {
+  width: 20px;
+  height: 20px;
+}
+
+.boton-google:hover:not(:disabled) {
+  border-color: var(--primario);
+}
+
+.boton-google:focus-visible {
+  outline: 2px solid var(--primario);
+  outline-offset: 2px;
+}
+
+.boton-google:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}

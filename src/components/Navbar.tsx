@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import '../css/Navbar.css'
+import { useSesion } from '../hooks/useSesion'
+import { cerrarSesion } from '../services/auth'
 
 type Enlace = { texto: string; href: string }
 
@@ -15,6 +17,8 @@ export default function Navbar({ enlaces = ENLACES }: { enlaces?: Enlace[] }) {
   const [menuUsuario, setMenuUsuario] = useState(false)
   const [menuMovil, setMenuMovil] = useState(false)
   const usuarioRef = useRef<HTMLDivElement>(null)
+  const { usuario } = useSesion()
+  const navigate = useNavigate()
 
   // Cierra el menú de usuario al hacer clic afuera o presionar Escape.
   useEffect(() => {
@@ -60,8 +64,8 @@ export default function Navbar({ enlaces = ENLACES }: { enlaces?: Enlace[] }) {
         <div className="navbar-usuario" ref={usuarioRef}>
           <button
             type="button"
-            className="navbar-icono"
-            aria-label="Cuenta de usuario"
+            className={`navbar-icono ${usuario ? 'con-sesion' : ''}`}
+            aria-label={usuario ? `Cuenta de ${usuario.email}` : 'Cuenta de usuario'}
             aria-haspopup="menu"
             aria-expanded={menuUsuario}
             onClick={() => {
@@ -77,13 +81,34 @@ export default function Navbar({ enlaces = ENLACES }: { enlaces?: Enlace[] }) {
 
           {menuUsuario && (
             <div className="navbar-menu" role="menu">
-              <p className="navbar-menu-titulo">Bienvenido a Dictamed</p>
-              <Link role="menuitem" className="navbar-menu-principal" to="/login" onClick={() => setMenuUsuario(false)}>
-                Iniciar sesión
-              </Link>
-              <Link role="menuitem" className="navbar-menu-secundario" to="/registro" onClick={() => setMenuUsuario(false)}>
-                Registrarse
-              </Link>
+              {usuario ? (
+                <>
+                  <p className="navbar-menu-titulo">Sesión iniciada</p>
+                  <p className="navbar-menu-correo">{usuario.email}</p>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="navbar-menu-secundario"
+                    onClick={async () => {
+                      setMenuUsuario(false)
+                      await cerrarSesion()
+                      navigate('/')
+                    }}
+                  >
+                    Cerrar sesión
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="navbar-menu-titulo">Bienvenido a Dictamed</p>
+                  <Link role="menuitem" className="navbar-menu-principal" to="/login" onClick={() => setMenuUsuario(false)}>
+                    Iniciar sesión
+                  </Link>
+                  <Link role="menuitem" className="navbar-menu-secundario" to="/registro" onClick={() => setMenuUsuario(false)}>
+                    Registrarse
+                  </Link>
+                </>
+              )}
             </div>
           )}
         </div>
