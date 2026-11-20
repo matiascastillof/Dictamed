@@ -563,3 +563,87 @@
   outline: 2px solid var(--primario);
   outline-offset: 1px;
 }
+
+/* Seguridad de la contraseña */
+.fuerza {
+  height: 5px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--primario-tenue);
+  overflow: hidden;
+}
+
+.fuerza-barra {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.25s ease, background 0.25s;
+}
+
+.fuerza-barra.debil {
+  background: var(--error);
+}
+
+.fuerza-barra.media {
+  background: #d99a1e;
+}
+
+.fuerza-barra.segura {
+  background: var(--primario);
+}
+
+.fuerza-texto {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--suave);
+}
+
+.requisitos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--suave);
+}
+
+.requisitos li {
+  display: flex;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.requisitos li span[aria-hidden] {
+  width: 12px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.requisitos li.cumple {
+  color: var(--primario);
+}
+
+@media (max-width: 520px) {
+  .requisitos {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fuerza-barra {
+    transition: none;
+  }
+}
+
+.registro-nota {
+  margin: -12px 0 20px !important;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.registro-listo .boton-volver:disabled {
+  opacity: 0.7;
+  cursor: default;
+}

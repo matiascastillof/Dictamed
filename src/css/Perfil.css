@@ -1,0 +1,156 @@
+/* Usa las variables de .registro (Register.css). */
+
+.perfil-contenedor {
+  flex: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 16px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.perfil-cargando {
+  text-align: center;
+  color: var(--suave);
+  padding: 80px 0;
+}
+
+.perfil-bienvenida {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--primario-tenue);
+  border: 1px solid color-mix(in srgb, var(--primario) 35%, transparent);
+  color: var(--titulo);
+  animation: perfil-entrar 0.4s ease-out;
+}
+
+.perfil-bienvenida > span {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.perfil-bienvenida strong {
+  font-size: 17px;
+}
+
+.perfil-bienvenida p {
+  margin: 4px 0 0;
+  color: var(--texto);
+}
+
+@keyframes perfil-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.perfil-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.perfil-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--primario);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.perfil-cabecera h1,
+.perfil-aviso h1 {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--titulo);
+}
+
+.perfil-cabecera p {
+  margin: 4px 0 0;
+}
+
+.perfil-desde {
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.perfil-subtitulo {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--suave);
+}
+
+.perfil-datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 32px;
+  margin: 0;
+}
+
+.perfil-datos div {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.perfil-datos dt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--suave);
+}
+
+.perfil-datos dd {
+  margin: 2px 0 0;
+  color: var(--titulo);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.perfil-acciones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.perfil-aviso {
+  text-align: center;
+  padding: 40px 28px;
+}
+
+.perfil-aviso p {
+  margin: 12px 0 24px;
+}
+
+@media (max-width: 560px) {
+  .perfil-cabecera {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .perfil-datos {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-bienvenida {
+    animation: none;
+  }
+}

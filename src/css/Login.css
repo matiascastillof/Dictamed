@@ -76,3 +76,42 @@
   opacity: 0.6;
   cursor: progress;
 }
+
+/* Enlaces de texto */
+.login-enlace {
+  display: inline-block;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--primario);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.login-enlace:hover {
+  text-decoration: underline;
+}
+
+.login-enlace:focus-visible {
+  outline: 2px solid var(--primario);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.login-olvide {
+  align-self: flex-end;
+  margin-top: -6px;
+}
+
+.login-reenviar {
+  display: block;
+  margin: 16px auto 0;
+}
+
+.login-contenedor .slide-bajada strong {
+  color: var(--titulo);
+  overflow-wrap: anywhere;
+}

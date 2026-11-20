@@ -1,0 +1,398 @@
+/* Área privada. Usa las variables de .registro (Register.css). */
+
+.privada-layout {
+  flex: 1;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 16px 56px;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+/* Menú lateral */
+.privada-menu {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+}
+
+.privada-usuario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.privada-usuario div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.privada-usuario strong {
+  color: var(--titulo);
+}
+
+.privada-usuario span:not(.privada-avatar) {
+  font-size: 13px;
+  color: var(--suave);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.privada-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--primario);
+  color: #fff;
+  font-weight: 700;
+}
+
+.privada-menu nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.privada-enlace {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  color: var(--texto);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.privada-enlace svg,
+.privada-salir svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.privada-enlace:hover {
+  background: var(--primario-tenue);
+  color: var(--titulo);
+}
+
+.privada-enlace.active {
+  background: var(--primario-tenue);
+  color: var(--primario);
+  font-weight: 600;
+}
+
+.privada-salir {
+  padding: 10px 14px;
+  border: 1.5px solid var(--borde-fuerte);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--titulo);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.privada-salir:hover {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+/* Contenido */
+.privada-contenido {
+  min-width: 0;
+}
+
+.privada-contenido .perfil-contenedor {
+  max-width: none;
+  padding: 0;
+}
+
+.privada-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.privada-cabecera h1,
+.privada-aviso h1 {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--titulo);
+}
+
+.privada-cabecera p {
+  margin: 6px 0 0;
+  color: var(--suave);
+}
+
+.privada-pie {
+  margin: 0;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.privada-pie a {
+  color: var(--primario);
+  font-weight: 600;
+}
+
+.privada-centro {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 40px 16px;
+}
+
+.privada-cargando {
+  color: var(--suave);
+}
+
+.privada-aviso {
+  max-width: 460px;
+  text-align: center;
+}
+
+.privada-aviso p {
+  margin: 12px 0 24px;
+}
+
+/* Nueva transcripción */
+.transcribir-opciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.transcribir-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.transcribir-opcion h2,
+.transcribir-listo h2,
+.historial-vacio h2 {
+  margin: 16px 0 4px;
+  font-size: 19px;
+  color: var(--titulo);
+}
+
+.transcribir-opcion p {
+  margin: 0;
+  color: var(--suave);
+}
+
+.transcribir-subir {
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.transcribir-subir:hover,
+.transcribir-subir:focus-within {
+  border-color: var(--primario);
+}
+
+.transcribir-subir.inactiva {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.transcribir-microfono {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primario);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.transcribir-microfono:hover {
+  background: var(--primario-hover);
+}
+
+.transcribir-microfono svg {
+  width: 36px;
+  height: 36px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.transcribir-microfono.grabando {
+  background: var(--error);
+  animation: transcribir-pulso 1.4s ease-in-out infinite;
+}
+
+.transcribir-microfono.grabando svg {
+  fill: currentColor;
+}
+
+.transcribir-microfono.secundario {
+  background: var(--primario-tenue);
+  color: var(--primario);
+}
+
+.transcribir-tiempo {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--titulo) !important;
+}
+
+@keyframes transcribir-pulso {
+  50% {
+    box-shadow: 0 0 0 14px color-mix(in srgb, var(--error) 18%, transparent);
+  }
+}
+
+.transcribir-listo h2 {
+  margin-top: 0;
+}
+
+.transcribir-listo audio {
+  width: 100%;
+  margin: 16px 0 8px;
+}
+
+.transcribir-nota {
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.transcribir-acciones {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Mis transcripciones */
+.historial-buscar {
+  margin: 0;
+}
+
+.historial-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.historial-vacio svg {
+  width: 48px;
+  height: 48px;
+  fill: none;
+  stroke: var(--primario);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.historial-vacio p {
+  margin: 0 0 24px;
+  color: var(--suave);
+}
+
+.historial-vacio .boton-registro {
+  flex: none;
+}
+
+.historial-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Móvil: el menú lateral pasa a pestañas arriba */
+@media (max-width: 860px) {
+  .privada-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding-top: 20px;
+  }
+
+  .privada-menu {
+    position: static;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .privada-usuario {
+    padding: 4px 4px 12px;
+  }
+
+  .privada-menu nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .privada-enlace {
+    flex: 1;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .privada-salir {
+    display: none;
+  }
+
+  .transcribir-opciones {
+    grid-template-columns: 1fr;
+  }
+
+  .privada-cabecera h1 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .privada-enlace svg {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transcribir-microfono.grabando {
+    animation: none;
+  }
+}

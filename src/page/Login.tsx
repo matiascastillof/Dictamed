@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import '../css/Register.css'
 import '../css/Login.css'
 import { useSesion } from '../hooks/useSesion'
+import { RECUPERAR_CONTRASENA } from '../config'
 import { ErrorAuth, iniciarConGoogle, iniciarSesion, tienePerfil } from '../services/auth'
+import { ErrorRegistro, reenviarConfirmacion } from '../services/profesionales'
 
 const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -25,12 +27,26 @@ export default function Login() {
   const [error, setError] = useState<string | null>(errorEnUrl)
   const [enviando, setEnviando] = useState<'correo' | 'google' | null>(null)
 
-  // Con sesión iniciada: al inicio si ya tiene ficha, o a completar el registro si no.
+  const [sinConfirmar, setSinConfirmar] = useState(false)
+  const [reenvio, setReenvio] = useState<'enviando' | 'enviado' | null>(null)
+
+  async function reenviar() {
+    setReenvio('enviando')
+    try {
+      await reenviarConfirmacion(correo.trim().toLowerCase())
+      setReenvio('enviado')
+    } catch (err) {
+      setReenvio(null)
+      setError(err instanceof ErrorRegistro ? err.message : 'No pudimos reenviar el correo.')
+    }
+  }
+
+  // Con sesión iniciada: a su perfil si ya tiene ficha, o a completar el registro si no.
   useEffect(() => {
     if (!usuario) return
     let activo = true
     tienePerfil(usuario.id).then((existe) => {
-      if (activo) navigate(existe ? '/' : '/registro', { replace: true })
+      if (activo) navigate(existe ? '/app' : '/registro', { replace: true })
     })
     return () => {
       activo = false
@@ -49,6 +65,8 @@ export default function Login() {
     }
     setErrores(nuevos)
     setError(null)
+    setSinConfirmar(false)
+    setReenvio(null)
     if (nuevos.correo || nuevos.contrasena) return
 
     setEnviando('correo')
@@ -57,6 +75,7 @@ export default function Login() {
       // La redirección la hace el efecto de arriba cuando llega la sesión.
     } catch (err) {
       setError(err instanceof ErrorAuth ? err.message : 'No pudimos conectar con el servidor.')
+      setSinConfirmar(err instanceof ErrorAuth && err.codigo === 'email_not_confirmed')
       setEnviando(null)
     }
   }
@@ -84,6 +103,16 @@ export default function Login() {
           {error && (
             <div className="registro-alerta login-alerta" role="alert">
               <p>{error}</p>
+              {sinConfirmar && (
+                <button
+                  type="button"
+                  className="editar"
+                  onClick={reenviar}
+                  disabled={reenvio !== null}
+                >
+                  {reenvio === 'enviando' ? 'Reenviando…' : reenvio === 'enviado' ? 'Reenviado ✓' : 'Reenviar correo'}
+                </button>
+              )}
             </div>
           )}
 
@@ -136,6 +165,12 @@ export default function Login() {
                 </span>
               )}
             </label>
+
+            {RECUPERAR_CONTRASENA && (
+              <Link className="login-enlace login-olvide" to="/recuperar">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            )}
 
             <button type="submit" className="boton-registro login-boton" disabled={ocupado || cargando}>
               {enviando === 'correo' || usuario ? 'Ingresando…' : 'Iniciar sesión'}

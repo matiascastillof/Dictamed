@@ -3,9 +3,11 @@ import { clave, supabase, url } from '../lib/supabase'
 const SIN_CONEXION = 'El inicio de sesión no está disponible: falta configurar la conexión a la base de datos.'
 
 export class ErrorAuth extends Error {
-  constructor(mensaje: string) {
+  codigo?: string
+  constructor(mensaje: string, codigo?: string) {
     super(mensaje)
     this.name = 'ErrorAuth'
+    this.codigo = codigo
   }
 }
 
@@ -23,7 +25,10 @@ export async function iniciarSesion(correo: string, contrasena: string): Promise
     case 'invalid_credentials':
       throw new ErrorAuth('Correo o contraseña incorrectos.')
     case 'email_not_confirmed':
-      throw new ErrorAuth('Debes confirmar tu correo antes de iniciar sesión.')
+      throw new ErrorAuth(
+        'Aún no confirmas tu cuenta. Presiona “Confirmar cuenta” en el correo que te enviamos.',
+        'email_not_confirmed',
+      )
     case 'over_request_rate_limit':
     case 'over_email_send_rate_limit':
       throw new ErrorAuth('Demasiados intentos. Espera unos minutos e inténtalo de nuevo.')
@@ -53,6 +58,46 @@ export async function iniciarConGoogle(): Promise<void> {
         ? 'El acceso con Google no está habilitado todavía.'
         : 'No pudimos conectar con Google. Inténtalo nuevamente.',
     )
+  }
+}
+
+/**
+ * Envía el correo para restablecer la contraseña. Por seguridad no revela si el
+ * correo tiene cuenta: la pantalla siempre muestra el mismo mensaje.
+ */
+export async function enviarRecuperacion(correo: string): Promise<void> {
+  if (!supabase) throw new ErrorAuth(SIN_CONEXION)
+
+  const { error } = await supabase.auth.resetPasswordForEmail(correo.trim().toLowerCase(), {
+    redirectTo: `${window.location.origin}/restablecer`,
+  })
+  if (!error) return
+
+  console.error('Supabase Auth (recuperación):', error)
+  if (error.code === 'over_email_send_rate_limit' || error.code === 'over_request_rate_limit' || error.status === 429) {
+    throw new ErrorAuth('Ya enviamos varios correos. Espera unos minutos antes de pedir otro.')
+  }
+  throw new ErrorAuth('No pudimos enviar el correo. Inténtalo nuevamente en unos minutos.')
+}
+
+/** Cambia la contraseña del usuario con sesión (la abre el enlace del correo). */
+export async function cambiarContrasena(nueva: string): Promise<void> {
+  if (!supabase) throw new ErrorAuth(SIN_CONEXION)
+
+  const { error } = await supabase.auth.updateUser({ password: nueva })
+  if (!error) return
+
+  console.error('Supabase Auth (cambio de contraseña):', error)
+  switch (error.code) {
+    case 'same_password':
+      throw new ErrorAuth('La nueva contraseña debe ser distinta a la anterior.')
+    case 'weak_password':
+      throw new ErrorAuth('La contraseña es muy débil. Cumple todos los requisitos.')
+    case 'session_not_found':
+    case 'session_expired':
+      throw new ErrorAuth('El enlace expiró. Solicita uno nuevo.')
+    default:
+      throw new ErrorAuth('No pudimos cambiar tu contraseña. Inténtalo nuevamente.')
   }
 }
 

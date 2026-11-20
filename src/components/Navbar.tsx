@@ -85,6 +85,12 @@ export default function Navbar({ enlaces = ENLACES }: { enlaces?: Enlace[] }) {
                 <>
                   <p className="navbar-menu-titulo">Sesión iniciada</p>
                   <p className="navbar-menu-correo">{usuario.email}</p>
+                  <Link role="menuitem" className="navbar-menu-principal" to="/app" onClick={() => setMenuUsuario(false)}>
+                    Mi espacio
+                  </Link>
+                  <Link role="menuitem" className="navbar-menu-secundario" to="/app/perfil" onClick={() => setMenuUsuario(false)}>
+                    Mi perfil
+                  </Link>
                   <button
                     type="button"
                     role="menuitem"

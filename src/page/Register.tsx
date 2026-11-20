@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import '../css/Register.css'
 import { REGIONES } from '../data/regiones'
 import { ESPECIALIDADES, OTRA, PROFESIONES, type Profesion } from '../data/especialidades'
 import { formatearRut, limpiarRut, validarRut } from '../utils/rut'
-import { ErrorRegistro, registrarProfesional } from '../services/profesionales'
+import {
+  ErrorRegistro,
+  reenviarConfirmacion,
+  registrarProfesional,
+  type ResultadoRegistro,
+} from '../services/profesionales'
 import { useSesion } from '../hooks/useSesion'
+import NuevaContrasena from '../components/NuevaContrasena'
+import { validarConfirmacion, validarContrasena } from '../utils/contrasena'
 
 export type DatosRegistro = {
   nombre: string
@@ -77,33 +84,16 @@ const PASOS: Paso[] = [
   },
   {
     id: 'correo',
-    titulo: '¿Cuál es tu correo electrónico?',
-    bajada: 'Lo usaremos para comunicarnos contigo y para que accedas a tu cuenta.',
+    titulo: 'Crea tu acceso',
+    bajada: 'Con este correo y contraseña iniciarás sesión en Dictamed.',
     validar: (d) => ({
       correo: !d.correo.trim()
         ? 'Ingresa tu correo electrónico.'
         : !CORREO.test(d.correo.trim())
           ? 'Revisa el formato del correo (ej: nombre@dominio.cl).'
           : undefined,
-    }),
-  },
-  {
-    id: 'contrasena',
-    titulo: 'Crea una contraseña',
-    bajada: 'La usarás junto a tu correo para iniciar sesión en Dictamed.',
-    validar: (d) => ({
-      contrasena: !d.contrasena
-        ? 'Crea una contraseña.'
-        : d.contrasena.length < 8
-          ? 'Debe tener al menos 8 caracteres.'
-          : !/\d/.test(d.contrasena) || !/\p{L}/u.test(d.contrasena)
-            ? 'Debe incluir al menos una letra y un número.'
-            : undefined,
-      confirmacion: !d.confirmacion
-        ? 'Repite tu contraseña.'
-        : d.confirmacion !== d.contrasena
-          ? 'Las contraseñas no coinciden.'
-          : undefined,
+      contrasena: validarContrasena(d.contrasena, d.correo),
+      confirmacion: validarConfirmacion(d.contrasena, d.confirmacion),
     }),
   },
   {
@@ -180,14 +170,15 @@ const ICONOS: Record<Profesion, string> = {
 export default function Register({
   alEnviar,
 }: {
-  alEnviar?: (datos: DatosRegistro) => void | Promise<void>
+  alEnviar?: (datos: DatosRegistro) => Promise<ResultadoRegistro>
 }) {
   const { usuario } = useSesion()
+  const navigate = useNavigate()
+  const [reenvio, setReenvio] = useState<{ estado: 'enviando' | 'enviado' | 'error'; mensaje?: string } | null>(null)
   const [datos, setDatos] = useState<DatosRegistro>(VACIO)
   const [pasoId, setPasoId] = useState(PASOS[0].id)
   const [errores, setErrores] = useState<Errores>({})
   const [busqueda, setBusqueda] = useState('')
-  const [verContrasena, setVerContrasena] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [listo, setListo] = useState(false)
   const [errorEnvio, setErrorEnvio] = useState<{ mensaje: string; paso?: string } | null>(null)
@@ -195,7 +186,7 @@ export default function Register({
 
   // Si ya inició sesión (por ejemplo con Google), no se piden correo ni contraseña.
   const pasos = useMemo(
-    () => (usuario ? PASOS.filter((p) => p.id !== 'correo' && p.id !== 'contrasena') : PASOS),
+    () => (usuario ? PASOS.filter((p) => p.id !== 'correo') : PASOS),
     [usuario],
   )
   const paso = Math.max(0, pasos.findIndex((p) => p.id === pasoId))
@@ -279,11 +270,13 @@ export default function Register({
         correo: datos.correo.trim().toLowerCase(),
         rut: limpiarRut(datos.rut),
       }
-      await (alEnviar ?? registrarProfesional)(final)
-      setListo(true)
+      const { requiereConfirmacion } = await (alEnviar ?? registrarProfesional)(final)
+      if (requiereConfirmacion) setListo(true)
+      else navigate('/app/perfil?bienvenida=1', { replace: true })
     } catch (err) {
       if (err instanceof ErrorRegistro) {
-        setErrorEnvio({ mensaje: err.message, paso: err.campo })
+        // El correo y la contraseña se piden en el mismo paso.
+        setErrorEnvio({ mensaje: err.message, paso: err.campo === 'contrasena' ? 'correo' : err.campo })
       } else {
         console.error(err)
         setErrorEnvio({ mensaje: 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.' })
@@ -303,6 +296,19 @@ export default function Register({
   const especialidadFinal =
     datos.especialidad === OTRA ? datos.especialidadOtra.trim() : datos.especialidad
 
+  async function reenviar() {
+    setReenvio({ estado: 'enviando' })
+    try {
+      await reenviarConfirmacion(datos.correo.trim().toLowerCase())
+      setReenvio({ estado: 'enviado' })
+    } catch (err) {
+      setReenvio({
+        estado: 'error',
+        mensaje: err instanceof ErrorRegistro ? err.message : 'No pudimos reenviar el correo.',
+      })
+    }
+  }
+
   if (listo) {
     return (
       <div className="registro">
@@ -310,17 +316,32 @@ export default function Register({
           <div className="registro-tarjeta registro-listo">
             <div className="listo-icono" aria-hidden="true">
               <svg viewBox="0 0 24 24">
-                <path d="M4 12.5 9 17.5 20 6.5" />
+                <path d="M3 7l9 6 9-6M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
               </svg>
             </div>
-            <h1>¡Bienvenido/a, {datos.nombre.trim()}!</h1>
+            <h1>¡Revisa tu correo, {datos.nombre.trim()}!</h1>
             <p>
-              Tu cuenta quedó creada con el correo{' '}
-              <strong>{datos.correo.trim().toLowerCase()}</strong> y ya iniciaste sesión.
+              Te enviamos un correo a <strong>{datos.correo.trim().toLowerCase()}</strong>. Presiona{' '}
+              <strong>“Confirmar cuenta”</strong> para activarla y ver tu perfil.
             </p>
-            <Link className="boton-registro" to="/">
-              Ir al inicio
-            </Link>
+            <p className="registro-nota">¿No lo encuentras? Revisa la carpeta de spam o promociones.</p>
+            <button
+              type="button"
+              className="boton-volver"
+              onClick={reenviar}
+              disabled={reenvio?.estado === 'enviando' || reenvio?.estado === 'enviado'}
+            >
+              {reenvio?.estado === 'enviando'
+                ? 'Reenviando…'
+                : reenvio?.estado === 'enviado'
+                  ? 'Correo reenviado ✓'
+                  : 'Reenviar correo'}
+            </button>
+            {reenvio?.estado === 'error' && (
+              <p className="campo-error registro-nota" role="alert">
+                {reenvio.mensaje}
+              </p>
+            )}
           </div>
         </main>
       </div>
@@ -435,51 +456,27 @@ export default function Register({
                     )}
 
                     {p.id === 'correo' && (
-                      <Campo etiqueta="Correo electrónico" error={errores.correo}>
-                        <input
-                          type="email"
-                          inputMode="email"
-                          autoComplete="email"
-                          autoCapitalize="off"
-                          spellCheck={false}
-                          placeholder="nombre@dominio.cl"
-                          value={datos.correo}
-                          onChange={(e) => cambiar('correo', e.target.value)}
-                        />
-                      </Campo>
-                    )}
-
-                    {p.id === 'contrasena' && (
                       <div className="campos">
-                        <Campo
-                          etiqueta="Contraseña"
-                          error={errores.contrasena}
-                          ayuda="Mínimo 8 caracteres, con al menos una letra y un número."
-                        >
-                          <div className="campo-contrasena">
-                            <input
-                              type={verContrasena ? 'text' : 'password'}
-                              autoComplete="new-password"
-                              value={datos.contrasena}
-                              onChange={(e) => cambiar('contrasena', e.target.value)}
-                            />
-                            <button
-                              type="button"
-                              className="ver-contrasena"
-                              onClick={() => setVerContrasena((v) => !v)}
-                            >
-                              {verContrasena ? 'Ocultar' : 'Mostrar'}
-                            </button>
-                          </div>
-                        </Campo>
-                        <Campo etiqueta="Repite la contraseña" error={errores.confirmacion}>
+                        <Campo etiqueta="Correo electrónico" error={errores.correo}>
                           <input
-                            type={verContrasena ? 'text' : 'password'}
-                            autoComplete="new-password"
-                            value={datos.confirmacion}
-                            onChange={(e) => cambiar('confirmacion', e.target.value)}
+                            type="email"
+                            inputMode="email"
+                            autoComplete="email"
+                            autoCapitalize="off"
+                            spellCheck={false}
+                            placeholder="nombre@dominio.cl"
+                            value={datos.correo}
+                            onChange={(e) => cambiar('correo', e.target.value)}
                           />
                         </Campo>
+                        <NuevaContrasena
+                          contrasena={datos.contrasena}
+                          confirmacion={datos.confirmacion}
+                          onContrasena={(v) => cambiar('contrasena', v)}
+                          onConfirmacion={(v) => cambiar('confirmacion', v)}
+                          errorContrasena={errores.contrasena}
+                          errorConfirmacion={errores.confirmacion}
+                        />
                       </div>
                     )}
 
