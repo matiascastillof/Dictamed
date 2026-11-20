@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { OTRA } from '../data/especialidades'
+import { capitalizar } from '../utils/texto'
 import type { DatosRegistro } from '../page/Register'
 
 type CampoError = 'rut' | 'correo' | 'contrasena'
@@ -143,7 +144,8 @@ export async function obtenerPerfil(idUsuario: string): Promise<Perfil | null> {
     .eq('id', idUsuario)
     .maybeSingle<Perfil>()
   if (error) console.error('Supabase:', error)
-  return data
+  // Muestra bien los nombres aunque se hayan guardado en minúsculas.
+  return data && { ...data, nombre: capitalizar(data.nombre), apellidos: capitalizar(data.apellidos) }
 }
 
 function lanzarErrorFicha(error: { code?: string; message: string; details?: string | null }): never {

@@ -4,6 +4,7 @@ import '../css/Register.css'
 import { REGIONES } from '../data/regiones'
 import { ESPECIALIDADES, OTRA, PROFESIONES, type Profesion } from '../data/especialidades'
 import { formatearRut, limpiarRut, validarRut } from '../utils/rut'
+import { capitalizar } from '../utils/texto'
 import {
   ErrorRegistro,
   reenviarConfirmacion,
@@ -265,8 +266,8 @@ export default function Register({
     try {
       const final = {
         ...datos,
-        nombre: datos.nombre.trim(),
-        apellidos: datos.apellidos.trim(),
+        nombre: capitalizar(datos.nombre),
+        apellidos: capitalizar(datos.apellidos),
         correo: datos.correo.trim().toLowerCase(),
         rut: limpiarRut(datos.rut),
       }

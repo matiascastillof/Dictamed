@@ -6,6 +6,7 @@ import { useSesion } from '../hooks/useSesion'
 import type { ContextoPrivado } from '../hooks/useAreaPrivada'
 import { cerrarSesion } from '../services/auth'
 import { obtenerPerfil, type Perfil } from '../services/profesionales'
+import { PROFESIONES } from '../data/especialidades'
 
 const SECCIONES = [
   {
@@ -99,8 +100,11 @@ export default function AreaPrivada() {
               {`${perfil.nombre[0] ?? ''}${perfil.apellidos[0] ?? ''}`.toUpperCase()}
             </span>
             <div>
-              <strong>{perfil.nombre}</strong>
-              <span>{perfil.especialidad}</span>
+              <strong>{perfil.nombre} {perfil.apellidos}</strong>
+              <span>
+                {PROFESIONES.find((p) => p.id === perfil.profesion)?.nombre ?? perfil.profesion} ·{' '}
+                {perfil.especialidad}
+              </span>
             </div>
           </div>
 

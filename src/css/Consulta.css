@@ -1,0 +1,339 @@
+/* Grabar consulta. Usa las variables de .registro (Register.css). */
+
+.consulta-volver {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--primario);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.consulta-volver:hover {
+  text-decoration: underline;
+}
+
+.consulta-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.consulta-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.consulta .registro-tarjeta {
+  padding: 22px 24px 24px;
+}
+
+/* Grabadora */
+.consulta-grabadora {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.consulta-grabadora .perfil-subtitulo {
+  align-self: flex-start;
+}
+
+.consulta-grabadora .transcribir-tiempo {
+  margin: 4px 0 0;
+}
+
+.consulta-estado {
+  margin: 0;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.consulta-grabadora .boton-registro,
+.consulta-grabadora .boton-volver {
+  flex: none;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.consulta-grabadora audio {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.consulta-aviso {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--suave);
+}
+
+/* Lugar de trabajo */
+.lugar,
+.lugar-particular {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lugar .campo,
+.lugar-particular .campo {
+  margin: 0;
+}
+
+.lugar-filtros {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.lugar-categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lugar-categorias button {
+  padding: 6px 12px;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.lugar-categorias button:hover {
+  border-color: var(--primario);
+}
+
+.lugar-categorias button.activa {
+  background: var(--primario);
+  border-color: var(--primario);
+  color: #fff;
+}
+
+.lugar-total {
+  margin: 0;
+  font-size: 13px;
+  color: var(--suave);
+}
+
+.lugar-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+}
+
+.lugar-lista li + li {
+  border-top: 1px solid var(--borde);
+}
+
+.lugar-lista button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lugar-lista button:hover,
+.lugar-lista button:focus-visible {
+  background: var(--primario-tenue);
+}
+
+.lugar-lista strong {
+  color: var(--titulo);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lugar-lista span {
+  font-size: 12px;
+  color: var(--suave);
+}
+
+.lugar-lista .lugar-mas {
+  align-items: center;
+  color: var(--primario);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.lugar-otro {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--suave);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lugar-otro strong {
+  color: var(--primario);
+}
+
+.lugar-botones {
+  display: flex;
+  gap: 10px;
+}
+
+.lugar-botones .boton-registro,
+.lugar-botones .boton-volver {
+  padding: 11px 18px;
+}
+
+.lugar-elegido {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--primario-tenue);
+}
+
+.lugar-elegido div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lugar-elegido strong {
+  color: var(--titulo);
+}
+
+.lugar-elegido span {
+  font-size: 13px;
+  color: var(--suave);
+}
+
+/* Transcripción */
+.consulta-transcripcion {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.consulta-barra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.consulta-barra .perfil-subtitulo {
+  margin: 0;
+}
+
+.consulta-palabras {
+  flex: 1;
+  font-size: 13px;
+  color: var(--suave);
+}
+
+.consulta-copiar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--primario);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primario);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.consulta-copiar:hover:not(:disabled) {
+  background: var(--primario-tenue);
+}
+
+.consulta-copiar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.consulta-copiar svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.consulta-texto {
+  width: 100%;
+  min-height: 520px;
+  resize: vertical;
+  padding: 16px 18px;
+  border: 1.5px solid var(--borde-fuerte);
+  border-radius: 14px;
+  background: var(--fondo);
+  color: var(--titulo);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.consulta-texto:focus {
+  outline: none;
+  border-color: var(--primario);
+  box-shadow: 0 0 0 4px var(--primario-tenue);
+}
+
+.consulta-texto::placeholder {
+  color: var(--suave);
+}
+
+.consulta-parcial {
+  margin: 0;
+  font-style: italic;
+  color: var(--suave);
+}
+
+@media (max-width: 960px) {
+  .consulta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .consulta-transcripcion {
+    position: static;
+  }
+
+  .consulta-texto {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 420px) {
+  .lugar-filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .consulta-barra {
+    flex-wrap: wrap;
+  }
+}

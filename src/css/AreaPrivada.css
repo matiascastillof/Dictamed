@@ -396,3 +396,8 @@
     animation: none;
   }
 }
+
+a.transcribir-opcion {
+  color: inherit;
+  text-decoration: none;
+}
