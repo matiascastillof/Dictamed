@@ -1,6 +1,6 @@
 import { clave, supabase, url } from '../lib/supabase'
 
-const SIN_CONEXION = 'El inicio de sesión no está disponible: falta configurar la conexión a la base de datos.'
+const SIN_CONEXION = 'El inicio de sesión no está disponible por ahora. Inténtalo más tarde.'
 
 export class ErrorAuth extends Error {
   codigo?: string
@@ -85,7 +85,16 @@ export async function cambiarContrasena(nueva: string): Promise<void> {
   if (!supabase) throw new ErrorAuth(SIN_CONEXION)
 
   const { error } = await supabase.auth.updateUser({ password: nueva })
-  if (!error) return
+  if (!error) {
+    // Cierra las demás sesiones abiertas; si falla, el cambio de contraseña igual fue exitoso.
+    try {
+      const { error: errorOtras } = await supabase.auth.signOut({ scope: 'others' })
+      if (errorOtras) console.error('Supabase Auth (cerrar otras sesiones):', errorOtras)
+    } catch (err) {
+      console.error('Supabase Auth (cerrar otras sesiones):', err)
+    }
+    return
+  }
 
   console.error('Supabase Auth (cambio de contraseña):', error)
   switch (error.code) {
@@ -115,16 +124,30 @@ async function proveedorActivo(proveedor: string): Promise<boolean> {
 
 export async function cerrarSesion(): Promise<void> {
   await supabase?.auth.signOut()
+  // Borra el lugar de trabajo recordado (clave antigua global y claves por usuario).
+  try {
+    for (const nombre of Object.keys(localStorage)) {
+      if (nombre.startsWith('dictamed-lugar-trabajo')) localStorage.removeItem(nombre)
+    }
+  } catch {
+    // Sin almacenamiento disponible: no hay nada que borrar.
+  }
 }
 
-/** true si el usuario ya completó su ficha de profesional. */
-export async function tienePerfil(idUsuario: string): Promise<boolean> {
-  if (!supabase) return false
+/**
+ * true si el usuario ya completó su ficha de profesional, false si no existe y
+ * null si no se pudo comprobar (error de red o de la base de datos).
+ */
+export async function tienePerfil(idUsuario: string): Promise<boolean | null> {
+  if (!supabase) return null
   const { data, error } = await supabase
     .from('profesionales')
     .select('id')
     .eq('id', idUsuario)
     .maybeSingle()
-  if (error) console.error('Supabase:', error)
+  if (error) {
+    console.error('Supabase:', error)
+    return null
+  }
   return Boolean(data)
 }

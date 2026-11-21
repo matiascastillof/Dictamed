@@ -46,6 +46,8 @@ export default function AreaPrivada() {
   const { usuario, cargando } = useSesion()
   const [invalido] = useState(enlaceInvalido)
   const [perfil, setPerfil] = useState<Perfil | null>(null)
+  const [errorPerfil, setErrorPerfil] = useState(false)
+  const [intento, setIntento] = useState(0)
 
   useEffect(() => {
     if (cargando) return
@@ -54,16 +56,22 @@ export default function AreaPrivada() {
       return
     }
     let activo = true
-    obtenerPerfil(usuario.id).then((p) => {
-      if (!activo) return
-      // Entró con Google pero no ha completado su ficha.
-      if (!p) navigate('/registro', { replace: true })
-      else setPerfil(p)
-    })
+    setErrorPerfil(false)
+    obtenerPerfil(usuario.id)
+      .then((p) => {
+        if (!activo) return
+        // Entró con Google pero no ha completado su ficha.
+        if (!p) navigate('/registro', { replace: true })
+        else setPerfil(p)
+      })
+      .catch(() => {
+        // Error de red o de la base de datos: no se asume que falte la ficha.
+        if (activo) setErrorPerfil(true)
+      })
     return () => {
       activo = false
     }
-  }, [usuario, cargando, invalido, navigate])
+  }, [usuario, cargando, invalido, navigate, intento])
 
   if (!cargando && !usuario && invalido) {
     return (
@@ -75,6 +83,22 @@ export default function AreaPrivada() {
             <Link className="boton-registro" to="/login">
               Iniciar sesión
             </Link>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  if (usuario && errorPerfil) {
+    return (
+      <div className="registro privada">
+        <main className="privada-centro">
+          <div className="registro-tarjeta privada-aviso" role="alert">
+            <h1>No pudimos cargar tu perfil</h1>
+            <p>Revisa tu conexión e inténtalo nuevamente.</p>
+            <button type="button" className="boton-registro" onClick={() => setIntento((n) => n + 1)}>
+              Reintentar
+            </button>
           </div>
         </main>
       </div>

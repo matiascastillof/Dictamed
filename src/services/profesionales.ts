@@ -36,7 +36,7 @@ export type ResultadoRegistro = {
 /** A dónde lleva el botón "Confirmar cuenta" del correo. */
 export const urlConfirmacion = () => `${window.location.origin}/app/perfil?bienvenida=1`
 
-const SIN_CONEXION = 'El registro no está disponible: falta configurar la conexión a la base de datos.'
+const SIN_CONEXION = 'El registro no está disponible por ahora. Inténtalo más tarde.'
 
 function fichaDesde(datos: DatosRegistro) {
   return {
@@ -143,7 +143,11 @@ export async function obtenerPerfil(idUsuario: string): Promise<Perfil | null> {
     .select('*')
     .eq('id', idUsuario)
     .maybeSingle<Perfil>()
-  if (error) console.error('Supabase:', error)
+  if (error) {
+    // Se propaga para distinguir "no pudimos consultar" de "no existe la ficha".
+    console.error('Supabase:', error)
+    throw error
+  }
   // Muestra bien los nombres aunque se hayan guardado en minúsculas.
   return data && { ...data, nombre: capitalizar(data.nombre), apellidos: capitalizar(data.apellidos) }
 }
@@ -160,7 +164,7 @@ function lanzarErrorFicha(error: { code?: string; message: string; details?: str
   }
   // 42501 = bloqueado por las políticas de seguridad (RLS)
   if (error.code === '42501') {
-    throw new ErrorRegistro('La base de datos rechazó el registro por permisos. Revisa las políticas RLS.')
+    throw new ErrorRegistro('No pudimos completar tu registro. Inténtalo nuevamente en unos minutos.')
   }
   throw new ErrorRegistro('No pudimos completar tu registro. Inténtalo nuevamente en unos minutos.')
 }

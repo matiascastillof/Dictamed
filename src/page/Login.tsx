@@ -46,7 +46,8 @@ export default function Login() {
     if (!usuario) return
     let activo = true
     tienePerfil(usuario.id).then((existe) => {
-      if (activo) navigate(existe ? '/app' : '/registro', { replace: true })
+      // Solo va a /registro si se confirmó que no hay ficha; ante un error, /app lo reintenta.
+      if (activo) navigate(existe === false ? '/registro' : '/app', { replace: true })
     })
     return () => {
       activo = false

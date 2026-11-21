@@ -23,12 +23,39 @@ type ConstructorVoz = new () => ReconocimientoVoz
 const ventana = window as unknown as { SpeechRecognition?: ConstructorVoz; webkitSpeechRecognition?: ConstructorVoz }
 const Reconocimiento = ventana.SpeechRecognition ?? ventana.webkitSpeechRecognition
 
-const CLAVE_LUGAR = 'dictamed-lugar-trabajo'
+// Una clave por usuario, para no compartir el lugar entre cuentas del mismo navegador.
+const claveLugar = (idUsuario: string) => `dictamed-lugar-trabajo:${idUsuario}`
 
-function leerLugar(): Lugar | null {
+const CATEGORIAS_CENTRO = ['aps', 'urgencia', 'hospital', 'privado', 'especialidad', 'otro']
+
+const esTexto = (v: unknown): v is string => typeof v === 'string'
+
+/** Comprueba que lo guardado en localStorage tenga la forma de un Lugar. */
+function esLugar(v: unknown): v is Lugar {
+  if (typeof v !== 'object' || v === null) return false
+  const l = v as Record<string, unknown>
+  if (!esTexto(l.region)) return false
+  if (l.tipo === 'particular') return esTexto(l.nombre)
+  if (l.tipo !== 'centro' || typeof l.centro !== 'object' || l.centro === null) return false
+  const c = l.centro as Record<string, unknown>
+  return (
+    esTexto(c.id) &&
+    esTexto(c.nombre) &&
+    esTexto(c.comuna) &&
+    esTexto(c.tipo) &&
+    esTexto(c.categoria) &&
+    CATEGORIAS_CENTRO.includes(c.categoria) &&
+    (c.sistema === 'publico' || c.sistema === 'privado') &&
+    (c.direccion === undefined || esTexto(c.direccion))
+  )
+}
+
+function leerLugar(idUsuario: string): Lugar | null {
   try {
-    const guardado = localStorage.getItem(CLAVE_LUGAR)
-    return guardado ? (JSON.parse(guardado) as Lugar) : null
+    const guardado = localStorage.getItem(claveLugar(idUsuario))
+    if (!guardado) return null
+    const dato: unknown = JSON.parse(guardado)
+    return esLugar(dato) ? dato : null
   } catch {
     return null
   }
@@ -51,7 +78,7 @@ function agregarFrase(texto: string, frase: string) {
 
 export default function Consulta() {
   const { perfil } = useAreaPrivada()
-  const [lugar, setLugar] = useState<Lugar | null>(leerLugar)
+  const [lugar, setLugar] = useState<Lugar | null>(() => leerLugar(perfil.id))
   const [estado, setEstado] = useState<Estado>('inactivo')
   const [segundos, setSegundos] = useState(0)
   const [texto, setTexto] = useState('')
@@ -100,8 +127,8 @@ export default function Consulta() {
   function elegirLugar(nuevo: Lugar | null) {
     setLugar(nuevo)
     try {
-      if (nuevo) localStorage.setItem(CLAVE_LUGAR, JSON.stringify(nuevo))
-      else localStorage.removeItem(CLAVE_LUGAR)
+      if (nuevo) localStorage.setItem(claveLugar(perfil.id), JSON.stringify(nuevo))
+      else localStorage.removeItem(claveLugar(perfil.id))
     } catch {
       // Sin almacenamiento disponible: solo no se recuerda para la próxima vez.
     }

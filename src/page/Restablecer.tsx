@@ -1,4 +1,4 @@
-import { useState, type SyntheticEvent } from 'react'
+import { useEffect, useState, type SyntheticEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import '../css/Register.css'
 import '../css/Login.css'
@@ -6,6 +6,7 @@ import NuevaContrasena from '../components/NuevaContrasena'
 import { useSesion } from '../hooks/useSesion'
 import { ErrorAuth, cambiarContrasena } from '../services/auth'
 import { validarConfirmacion, validarContrasena } from '../utils/contrasena'
+import { supabase } from '../lib/supabase'
 
 /** Lee el error que Supabase deja en la URL si el enlace es inválido o expiró. */
 function enlaceInvalido(): boolean {
@@ -18,12 +19,22 @@ export default function Restablecer() {
   const navigate = useNavigate()
   const { usuario, cargando } = useSesion()
   const [invalido] = useState(enlaceInvalido)
+  // Solo se permite cambiar la contraseña si la sesión viene del enlace de recuperación.
+  const [recuperacion, setRecuperacion] = useState(false)
   const [contrasena, setContrasena] = useState('')
   const [confirmacion, setConfirmacion] = useState('')
   const [errores, setErrores] = useState<{ contrasena?: string; confirmacion?: string }>({})
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [listo, setListo] = useState(false)
+
+  useEffect(() => {
+    if (!supabase) return
+    const { data } = supabase.auth.onAuthStateChange((evento) => {
+      if (evento === 'PASSWORD_RECOVERY') setRecuperacion(true)
+    })
+    return () => data.subscription.unsubscribe()
+  }, [])
 
   async function alEnviar(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -59,7 +70,7 @@ export default function Restablecer() {
     )
   } else if (cargando) {
     contenido = <p className="slide-bajada">Verificando enlace…</p>
-  } else if (invalido || !usuario) {
+  } else if (invalido || !usuario || !recuperacion) {
     contenido = (
       <>
         <h1 className="login-titulo">Enlace no válido</h1>

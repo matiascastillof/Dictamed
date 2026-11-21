@@ -6,7 +6,8 @@ export const url = import.meta.env.VITE_SUPABASE_URL?.trim().replace(/\/rest\/v1
 export const clave = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim()
 
 // Si faltan las claves, el resto de la web sigue funcionando; solo falla lo que usa la BD.
-export const supabase: SupabaseClient | null = url && clave ? createClient(url, clave) : null
+export const supabase: SupabaseClient | null = url && clave ? createClient(url, clave, { auth: { flowType: 'pkce' } })
+  : null
 
 if (!supabase) {
   console.error(

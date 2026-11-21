@@ -63,6 +63,11 @@ for (const f of filas) {
   if (EXCLUIDOS.has(f.TipoEstablecimientoGlosa)) continue
   const [categoria, tipo] = TIPOS[f.TipoEstablecimientoGlosa] ?? ['otro', 'Otro']
   const sistema = f.TipoSistemaSaludGlosa === 'Privado' ? 'privado' : 'publico'
+  // El código se usa como nombre de archivo: solo se aceptan dos dígitos (evita path traversal).
+  if (!/^\d{2}$/.test(f.RegionCodigo)) {
+    console.warn(`Fila omitida: código de región no válido (${JSON.stringify(f.RegionCodigo)}) en ${f.EstablecimientoCodigo}`)
+    continue
+  }
   const direccion = [f.NombreVia, f.Numero].filter(Boolean).join(' ')
   ;(porRegion[f.RegionCodigo] ??= []).push({
     id: f.EstablecimientoCodigo,

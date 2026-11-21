@@ -14,8 +14,9 @@ import { RECUPERAR_CONTRASENA } from './config.ts'
 
 /** Lleva la antigua /perfil (enlaces de correos ya enviados) a /app/perfil. */
 function RedirigirPerfil() {
-  const { search, hash } = useLocation()
-  return <Navigate to={{ pathname: '/app/perfil', search, hash }} replace />
+  // No se reenvía el hash: podría llevar tokens o datos de sesión.
+  const { search } = useLocation()
+  return <Navigate to={{ pathname: '/app/perfil', search }} replace />
 }
 
 function App() {
