@@ -154,3 +154,109 @@
     animation: none;
   }
 }
+
+/* Firma */
+.firma {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.firma .perfil-subtitulo {
+  margin: 0;
+}
+
+.firma-bajada {
+  margin: 0;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.firma-aviso {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primario);
+}
+
+/* La firma se ve sobre "papel" blanco también en modo oscuro. */
+.firma-hoja {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 200px;
+  border: 1.5px dashed var(--borde-fuerte);
+  border-radius: 14px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.firma-hoja img {
+  max-width: 90%;
+  max-height: 180px;
+  object-fit: contain;
+}
+
+.firma-lienzo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.firma-guia {
+  pointer-events: none;
+  color: #8a9a97;
+  font-size: 14px;
+}
+
+.firma-hoja::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 44px;
+  border-bottom: 1px solid #c9d6d3;
+  pointer-events: none;
+}
+
+.firma-acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.firma-acciones .boton-registro {
+  flex: none;
+}
+
+.firma-acciones button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.firma-subir {
+  font-size: 13px;
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.firma-subir strong {
+  color: var(--primario);
+}
+
+.firma-subir:focus-within strong {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .firma-acciones {
+    flex-wrap: wrap;
+  }
+
+  .firma-acciones button {
+    flex: 1;
+  }
+}

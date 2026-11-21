@@ -17,7 +17,6 @@ const EXCLUIDOS = new Set([
   'Laboratorio Clínico',
   'Vacunatorio',
   'Sala  Externa de Toma de Muestras (SETM)',
-  'Clínica Dental',
   'Dispositivo Incorporado por Crisis Sanitaria',
   'Atención Remota',
 ])
@@ -37,6 +36,7 @@ const TIPOS = {
   Hospital: ['hospital', 'Hospital'],
   'Hospital de Día': ['hospital', 'Hospital de día'],
   Clínica: ['privado', 'Clínica'],
+  'Clínica Dental': ['dental', 'Clínica dental'],
   'Centro de Salud Privado': ['privado', 'Centro privado'],
   'Centros de Diagnóstico y Tratamiento Privados': ['privado', 'CDT privado'],
   'Centro de Especialidades': ['especialidad', 'Centro de especialidades'],

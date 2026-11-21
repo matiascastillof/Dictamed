@@ -56,7 +56,6 @@ export default function AreaPrivada() {
       return
     }
     let activo = true
-    setErrorPerfil(false)
     obtenerPerfil(usuario.id)
       .then((p) => {
         if (!activo) return
@@ -96,7 +95,11 @@ export default function AreaPrivada() {
           <div className="registro-tarjeta privada-aviso" role="alert">
             <h1>No pudimos cargar tu perfil</h1>
             <p>Revisa tu conexión e inténtalo nuevamente.</p>
-            <button type="button" className="boton-registro" onClick={() => setIntento((n) => n + 1)}>
+            <button type="button" className="boton-registro" onClick={() => {
+                setErrorPerfil(false)
+                setIntento((n) => n + 1)
+              }}
+            >
               Reintentar
             </button>
           </div>

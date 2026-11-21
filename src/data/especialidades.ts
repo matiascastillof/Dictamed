@@ -1,7 +1,9 @@
-export type Profesion = 'medico' | 'enfermero' | 'tens'
+// El id 'medico' se mantiene porque así está guardado en las fichas existentes.
+export type Profesion = 'medico' | 'odontologo' | 'enfermero' | 'tens'
 
 export const PROFESIONES: { id: Profesion; nombre: string; detalle: string }[] = [
-  { id: 'medico', nombre: 'Médico/a', detalle: 'Medicina general o especialista' },
+  { id: 'medico', nombre: 'Cirujano/a', detalle: 'Médico cirujano: medicina general o especialista' },
+  { id: 'odontologo', nombre: 'Odontólogo/a', detalle: 'Cirujano dentista: general o especialista' },
   { id: 'enfermero', nombre: 'Enfermero/a', detalle: 'Enfermería universitaria' },
   { id: 'tens', nombre: 'TENS', detalle: 'Técnico en Enfermería de Nivel Superior' },
 ]
@@ -116,8 +118,27 @@ const TENS = [
   'Vacunatorio',
 ]
 
+// Especialidades odontológicas reconocidas en Chile (CONACEO / Superintendencia de Salud).
+const ODONTOLOGO = [
+  'Odontología General',
+  'Cirugía y Traumatología Bucal y Maxilofacial',
+  'Endodoncia',
+  'Imagenología Oral y Maxilofacial',
+  'Implantología Bucomaxilofacial',
+  'Odontogeriatría',
+  'Odontología Legal y Forense',
+  'Odontopediatría',
+  'Ortodoncia y Ortopedia Dentomaxilofacial',
+  'Patología Bucomaxilofacial',
+  'Periodoncia',
+  'Rehabilitación Oral',
+  'Salud Pública Odontológica',
+  'Trastornos Temporomandibulares y Dolor Orofacial',
+]
+
 export const ESPECIALIDADES: Record<Profesion, string[]> = {
   medico: MEDICO,
+  odontologo: ODONTOLOGO,
   enfermero: ENFERMERO,
   tens: TENS,
 }

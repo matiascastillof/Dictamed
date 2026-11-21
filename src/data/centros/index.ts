@@ -2,7 +2,7 @@
 // (datos.gob.cl, actualizado el 17-11-2026). Para actualizar:
 //   node scripts/generar-centros.mjs establecimientos.csv
 
-export type Categoria = 'aps' | 'urgencia' | 'hospital' | 'privado' | 'especialidad' | 'otro'
+export type Categoria = 'aps' | 'urgencia' | 'hospital' | 'privado' | 'dental' | 'especialidad' | 'otro'
 
 export type Centro = {
   id: string
@@ -18,6 +18,7 @@ export const CATEGORIAS: { id: Categoria; nombre: string }[] = [
   { id: 'aps', nombre: 'CESFAM y consultorios' },
   { id: 'hospital', nombre: 'Hospitales' },
   { id: 'privado', nombre: 'Clínicas y centros privados' },
+  { id: 'dental', nombre: 'Clínicas dentales' },
   { id: 'urgencia', nombre: 'Urgencias (SAPU, SAR, SUR)' },
   { id: 'especialidad', nombre: 'Especialidades y COSAM' },
   { id: 'otro', nombre: 'Otros' },

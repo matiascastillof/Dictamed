@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import '../css/Perfil.css'
 import { useAreaPrivada } from '../hooks/useAreaPrivada'
+import FirmaDigital from '../components/FirmaDigital'
 import { CONFIRMAR_CORREO } from '../config'
 import { PROFESIONES } from '../data/especialidades'
 import { formatearRut } from '../utils/rut'
@@ -68,6 +69,9 @@ export default function Perfil() {
           ))}
         </dl>
       </section>
+
+      {/* Solo cirujanos (médicos cirujanos) guardan firma. */}
+      {perfil.profesion === 'medico' && <FirmaDigital idUsuario={perfil.id} />}
     </div>
   )
 }
