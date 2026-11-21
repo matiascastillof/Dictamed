@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import '../css/Consulta.css'
 import { useAreaPrivada } from '../hooks/useAreaPrivada'
 import LugarTrabajo, { type Lugar } from '../components/LugarTrabajo'
+import SelectorEscala from '../components/SelectorEscala'
+import { informeEnHtml, informeEnTexto, type TablaInforme } from '../utils/informe'
 
 type Estado = 'inactivo' | 'grabando' | 'pausado' | 'terminado'
 
@@ -82,6 +84,7 @@ export default function Consulta() {
   const [estado, setEstado] = useState<Estado>('inactivo')
   const [segundos, setSegundos] = useState(0)
   const [texto, setTexto] = useState('')
+  const [tablas, setTablas] = useState<TablaInforme[]>([])
   const [parcial, setParcial] = useState('')
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -221,6 +224,7 @@ export default function Consulta() {
 
   function nuevaConsulta() {
     setTexto('')
+    setTablas([])
     setParcial('')
     setAudioUrl(null)
     setSegundos(0)
@@ -228,8 +232,19 @@ export default function Consulta() {
   }
 
   async function copiar() {
+    const plano = informeEnTexto(texto, tablas)
     try {
-      await navigator.clipboard.writeText(texto)
+      // Con formato (las tablas se pegan como tablas en Word o fichas clínicas) y en texto plano.
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob([plano], { type: 'text/plain' }),
+            'text/html': new Blob([informeEnHtml(texto, tablas)], { type: 'text/html' }),
+          }),
+        ])
+      } else {
+        await navigator.clipboard.writeText(plano)
+      }
       setCopiado(true)
     } catch {
       setError('No pudimos copiar el texto. Selecciónalo y usa Ctrl + C.')
@@ -309,6 +324,11 @@ export default function Consulta() {
           </section>
 
           <section className="registro-tarjeta">
+            <h2 className="perfil-subtitulo">Escalas clínicas</h2>
+            <SelectorEscala alAgregar={(t) => setTablas((lista) => [...lista, t])} />
+          </section>
+
+          <section className="registro-tarjeta">
             <h2 className="perfil-subtitulo">Lugar de trabajo</h2>
             <LugarTrabajo
               regionInicial={perfil.region}
@@ -321,11 +341,16 @@ export default function Consulta() {
 
         <section className="registro-tarjeta consulta-transcripcion">
           <div className="consulta-barra">
-            <h2 className="perfil-subtitulo">Transcripción</h2>
+            <h2 className="perfil-subtitulo">Informe</h2>
             <span className="consulta-palabras">
               {palabras} {palabras === 1 ? 'palabra' : 'palabras'}
             </span>
-            <button type="button" className="consulta-copiar" onClick={copiar} disabled={!texto.trim()}>
+            <button
+              type="button"
+              className="consulta-copiar"
+              onClick={copiar}
+              disabled={!texto.trim() && tablas.length === 0}
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 {copiado ? (
                   <path d="m5 12 5 5L20 7" />
@@ -356,6 +381,46 @@ export default function Consulta() {
               {parcial}
             </p>
           )}
+
+          {tablas.map((t) => (
+            <div key={t.id} className="informe-tabla">
+              <div className="informe-tabla-titulo">
+                <strong>{t.titulo}</strong>
+                <button
+                  type="button"
+                  className="escala-quitar"
+                  aria-label={`Quitar tabla ${t.titulo}`}
+                  onClick={() => setTablas((lista) => lista.filter((x) => x.id !== t.id))}
+                >
+                  ×
+                </button>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Parámetro</th>
+                    <th>Respuesta</th>
+                    <th>Puntos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {t.filas.map((f, i) => (
+                    <tr key={i}>
+                      <td>{f.parametro}</td>
+                      <td>{f.valor}</td>
+                      <td>{f.puntos ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className={`nivel-${t.nivel}`}>
+                    <th colSpan={2}>{t.interpretacion}</th>
+                    <th>{t.total}</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          ))}
         </section>
       </div>
     </div>
